@@ -1,0 +1,8 @@
+{
+  "name": "trace-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Action — static analyzer for AI-generated code",
+  "license": "MIT",
+  "author": "Lattice Node"
+}

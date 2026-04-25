@@ -1,0 +1,35 @@
+name: self-test
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run trace-action against known-broken fixture
+        id: trace
+        uses: ./
+        with:
+          path: tests/fixtures/broken-sample.ts
+          fail-on-detection: 'false'
+          comment-on-pr: 'false'
+          upload-sarif: 'false'
+
+      - name: Assert detections were found
+        run: |
+          if [ "${{ steps.trace.outputs.detection-count }}" -lt 6 ]; then
+            echo "::error::Expected >= 6 detections, got ${{ steps.trace.outputs.detection-count }}"
+            exit 1
+          fi
+          echo "Detection count: ${{ steps.trace.outputs.detection-count }}"
+          echo "Grade: ${{ steps.trace.outputs.grade }}"

@@ -1,0 +1,150 @@
+name: 'Trace'
+description: 'Static analyzer for AI-generated code. Detects 24 LLM-specific failure patterns.'
+author: 'Lattice Node'
+
+branding:
+  icon: 'eye'
+  color: 'red'
+
+inputs:
+  path:
+    description: 'Directory or file to scan, relative to repo root.'
+    required: false
+    default: '.'
+
+  severity-threshold:
+    description: 'Minimum severity to report. One of: low, medium, high, critical.'
+    required: false
+    default: 'low'
+
+  fail-on-detection:
+    description: 'If "true", fail the action when detections at or above severity-threshold are found.'
+    required: false
+    default: 'false'
+
+  comment-on-pr:
+    description: 'Post a summary comment on the PR. Has no effect outside pull_request events.'
+    required: false
+    default: 'true'
+
+  upload-sarif:
+    description: 'Upload SARIF to GitHub Code Scanning. Requires security-events: write permission.'
+    required: false
+    default: 'true'
+
+  trace-version:
+    description: 'Trace-core npm version to use. Default "latest" pins to the most recent published version.'
+    required: false
+    default: 'latest'
+
+  github-token:
+    description: 'Token used for PR comments and SARIF upload. Defaults to GITHUB_TOKEN.'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  detection-count:
+    description: 'Total number of detections at or above severity-threshold.'
+    value: ${{ steps.compute.outputs.detection-count }}
+
+  critical-count:
+    description: 'Number of critical detections.'
+    value: ${{ steps.compute.outputs.critical-count }}
+
+  high-count:
+    description: 'Number of high detections.'
+    value: ${{ steps.compute.outputs.high-count }}
+
+  medium-count:
+    description: 'Number of medium detections.'
+    value: ${{ steps.compute.outputs.medium-count }}
+
+  low-count:
+    description: 'Number of low detections.'
+    value: ${{ steps.compute.outputs.low-count }}
+
+  grade:
+    description: 'Letter grade (A/B/C/D/F) based on detection count and severity mix.'
+    value: ${{ steps.compute.outputs.grade }}
+
+  summary-markdown:
+    description: 'Human-readable markdown summary of the scan.'
+    value: ${{ steps.compute.outputs.summary-markdown }}
+
+  sarif-path:
+    description: 'Path to the generated SARIF file (relative to workspace).'
+    value: ${{ steps.run.outputs.sarif-path }}
+
+  json-path:
+    description: 'Path to the raw Trace JSON output (relative to workspace).'
+    value: ${{ steps.run.outputs.json-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run Trace
+      id: run
+      shell: bash
+      env:
+        TRACE_PATH: ${{ inputs.path }}
+        TRACE_THRESHOLD: ${{ inputs.severity-threshold }}
+        TRACE_VERSION: ${{ inputs.trace-version }}
+      run: bash ${{ github.action_path }}/scripts/run-trace.sh
+
+    - name: Convert JSON to SARIF
+      id: sarif
+      shell: bash
+      env:
+        TRACE_JSON: ${{ steps.run.outputs.json-path }}
+        SARIF_OUT: ${{ steps.run.outputs.sarif-path }}
+      run: node ${{ github.action_path }}/scripts/json-to-sarif.mjs
+
+    - name: Compute outputs (grade, counts, summary)
+      id: compute
+      shell: bash
+      env:
+        TRACE_JSON: ${{ steps.run.outputs.json-path }}
+        TRACE_THRESHOLD: ${{ inputs.severity-threshold }}
+        TRACE_PATH: ${{ inputs.path }}
+      run: node ${{ github.action_path }}/scripts/compute-outputs.mjs
+
+    - name: Upload SARIF to Code Scanning
+      if: ${{ inputs.upload-sarif == 'true' && steps.run.outputs.json-path != '' }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.run.outputs.sarif-path }}
+        category: trace
+
+    - name: Comment on PR
+      if: ${{ inputs.comment-on-pr == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        SUMMARY: ${{ steps.compute.outputs.summary-markdown }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+      run: |
+        MARKER='<!-- trace-action-comment -->'
+        BODY="$MARKER
+        $SUMMARY"
+
+        EXISTING_ID=$(gh api "/repos/$REPO/issues/$PR_NUMBER/comments" \
+          --jq ".[] | select(.body | contains(\"$MARKER\")) | .id" | head -1)
+
+        if [ -n "$EXISTING_ID" ]; then
+          gh api -X PATCH "/repos/$REPO/issues/comments/$EXISTING_ID" -f body="$BODY"
+        else
+          gh api -X POST "/repos/$REPO/issues/$PR_NUMBER/comments" -f body="$BODY"
+        fi
+
+    - name: Fail if requested
+      if: ${{ inputs.fail-on-detection == 'true' && steps.compute.outputs.detection-count != '0' }}
+      shell: bash
+      run: |
+        echo "::error::Trace found ${{ steps.compute.outputs.detection-count }} detection(s) at or above ${{ inputs.severity-threshold }} severity."
+        exit 1

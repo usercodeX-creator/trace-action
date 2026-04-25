@@ -1,0 +1,186 @@
+{
+  "version": "0.6.0",
+  "detections": [
+    {
+      "detector": "hallucinated-deps",
+      "severity": "critical",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 4,
+      "message": "Package \"fake-ai-toolkit\" not found on npm",
+      "rawCode": "import { magicSolver } from 'fake-ai-toolkit';",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "hallucinated-deps",
+      "severity": "critical",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 5,
+      "message": "Package \"nonexistent-ml-lib\" not found on npm",
+      "rawCode": "import { autoTrain } from 'nonexistent-ml-lib';",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "credential-leak",
+      "severity": "critical",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 8,
+      "column": 32,
+      "message": "Hardcoded AWS Access Key ID",
+      "rawCode": "const AWS_SECRET_ACCESS_KEY = \"AKIA...MPLE\";",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "credential-leak",
+      "severity": "critical",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 10,
+      "column": 23,
+      "message": "Hardcoded PostgreSQL connection string with password",
+      "rawCode": "const DATABASE_URL = \"post...tion\";",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "hardcoded-localhost",
+      "severity": "medium",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 18,
+      "column": 30,
+      "message": "Hardcoded localhost/loopback URL — will not work in production.",
+      "rawCode": "const resp = await fetch(`http://localhost:3000/api/users/${id}`);",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "silent-exception",
+      "severity": "high",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 20,
+      "message": "catch block body contains only comments",
+      "rawCode": "try {\n} catch {\n    // swallow silently",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "fake-type-safety",
+      "severity": "medium",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 26,
+      "column": 18,
+      "message": "Cast to `any` defeats TypeScript checks. Narrow with a specific type.",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "fake-type-safety",
+      "severity": "medium",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 35,
+      "column": 24,
+      "message": "Cast to `any` defeats TypeScript checks. Narrow with a specific type.",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "unsafe-sanitize",
+      "severity": "critical",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 36,
+      "column": 18,
+      "message": "Arbitrary code execution: eval() with untrusted input",
+      "rawCode": "const result = eval(payload.script);",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "dynamic-eval",
+      "severity": "critical",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 36,
+      "column": 18,
+      "message": "JavaScript `eval` called with dynamic argument — code injection risk.",
+      "rawCode": "const result = eval(payload.script);",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "unsafe-sanitize",
+      "severity": "critical",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 37,
+      "column": 10,
+      "message": "Dynamic code execution: new Function() with untrusted input",
+      "rawCode": "return new Function(payload.fallback)();",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "dynamic-eval",
+      "severity": "critical",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 37,
+      "column": 14,
+      "message": "JavaScript `Function` called with dynamic argument — code injection risk.",
+      "rawCode": "return new Function(payload.fallback)();",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "fake-type-safety",
+      "severity": "medium",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 49,
+      "column": 34,
+      "message": "Type annotation `any` defeats TypeScript checks. Use a specific type or `unknown`.",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "fake-type-safety",
+      "severity": "medium",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 50,
+      "column": 29,
+      "message": "Cast to `any` defeats TypeScript checks. Narrow with a specific type.",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    },
+    {
+      "detector": "tautological-test",
+      "severity": "high",
+      "file": "examples/typescript/api-leak.ts",
+      "line": 58,
+      "column": 5,
+      "message": "Tautological test: `expect(true).toBe(true)` always passes.",
+      "suggestedFix": null,
+      "dependencyContext": null,
+      "auditTrail": null
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "bySeverity": {
+      "critical": 8,
+      "high": 2,
+      "medium": 5,
+      "low": 0
+    }
+  }
+}
