@@ -16,8 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run trace-action against known-broken fixture
-        id: trace
+      - name: Test single-file mode (existing behavior)
+        id: trace-file
         uses: ./
         with:
           path: tests/fixtures/broken-sample.ts
@@ -25,11 +25,27 @@ jobs:
           comment-on-pr: 'false'
           upload-sarif: 'false'
 
-      - name: Assert detections were found
+      - name: Assert single-file mode
         run: |
-          if [ "${{ steps.trace.outputs.detection-count }}" -lt 6 ]; then
-            echo "::error::Expected >= 6 detections, got ${{ steps.trace.outputs.detection-count }}"
+          if [ "${{ steps.trace-file.outputs.detection-count }}" -lt 6 ]; then
+            echo "::error::single-file: expected >= 6, got ${{ steps.trace-file.outputs.detection-count }}"
             exit 1
           fi
-          echo "Detection count: ${{ steps.trace.outputs.detection-count }}"
-          echo "Grade: ${{ steps.trace.outputs.grade }}"
+
+      - name: Test directory mode (the bug we fixed)
+        id: trace-dir
+        uses: ./
+        with:
+          path: tests/fixtures-dir
+          fail-on-detection: 'false'
+          comment-on-pr: 'false'
+          upload-sarif: 'false'
+
+      - name: Assert directory mode
+        run: |
+          if [ "${{ steps.trace-dir.outputs.detection-count }}" -lt 7 ]; then
+            echo "::error::directory: expected >= 7, got ${{ steps.trace-dir.outputs.detection-count }}"
+            exit 1
+          fi
+          echo "Single-file: ${{ steps.trace-file.outputs.detection-count }}"
+          echo "Directory: ${{ steps.trace-dir.outputs.detection-count }}"
