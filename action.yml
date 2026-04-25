@@ -1,4 +1,4 @@
-name: 'Trace'
+name: 'Trace Check'
 description: 'Static analyzer for AI-generated code. Detects 24 LLM-specific failure patterns.'
 author: 'Lattice Node'
 
