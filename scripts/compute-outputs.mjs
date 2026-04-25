@@ -56,24 +56,24 @@ try {
   let summary;
   if (detections.length === 0) {
     summary = [
-      "## \\u2705 Trace scan",
+      "## ✅ Trace scan",
       "",
       "No detections. **Grade: A**",
       "",
-      `\\u2014 [Trace](https://tracecheck.dev) v${version} \\u00b7 scanned \\\`${scanPath}\\\``,
+      `— [Trace](https://tracecheck.dev) v${version} · scanned \`${scanPath}\``,
     ].join("\n");
   } else {
     const bullets = top3
       .map(
         (d) =>
-          `- **${d.detector}** \\u2014 \\\`${d.file || "unknown"}:${d.line || 0}\\\` \\u2014 ${d.message}`
+          `- **${d.detector}** — \`${d.file || "unknown"}:${d.line || 0}\` — ${d.message}`
       )
       .join("\n");
 
     summary = [
-      "## \\ud83d\\udd0e Trace scan",
+      "## 🔎 Trace scan",
       "",
-      `**Grade: ${grade}** \\u00b7 ${detections.length} detection${detections.length !== 1 ? "s" : ""}`,
+      `**Grade: ${grade}** · ${detections.length} detection${detections.length !== 1 ? "s" : ""}`,
       "",
       "| Severity | Count |",
       "|---|---|",
@@ -84,7 +84,7 @@ try {
       "",
       bullets,
       "",
-      `\\u2014 [Trace](https://tracecheck.dev) v${version} \\u00b7 scanned \\\`${scanPath}\\\``,
+      `— [Trace](https://tracecheck.dev) v${version} · scanned \`${scanPath}\``,
     ].join("\n");
   }
 
